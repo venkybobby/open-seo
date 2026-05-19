@@ -43,6 +43,12 @@ function MarketingLayout() {
             >
               Pricing
             </Link>
+            <Link
+              to="/for-agencies"
+              className="text-sm text-emerald-700 hover:text-emerald-900 transition-colors font-medium"
+            >
+              Agencies
+            </Link>
             <a
               href="https://github.com/every-app/open-seo"
               target="_blank"

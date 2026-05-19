@@ -8,6 +8,7 @@ import { BillingUsageChart } from "@/client/features/billing/BillingUsageChart";
 import { parseTopUpAmount } from "@/client/features/billing/HostedBillingContentUtils";
 import { getBillingRouteState } from "@/client/features/billing/route-state";
 import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
+import { PlatformBillingSection } from "@/client/features/billing/PlatformBillingSection";
 import {
   AUTUMN_PAID_PLAN_ID,
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
@@ -123,6 +124,8 @@ function BillingPageContent() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-5 p-4 py-10 md:p-6 md:py-12">
       <h1 className="text-xl font-semibold">Billing</h1>
+
+      <PlatformBillingSection />
 
       <div className="grid gap-5 md:grid-cols-2">
         {/* Subscription card */}

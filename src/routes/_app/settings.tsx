@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { type ThemePreference, useThemePreference } from "@/client/lib/theme";
 import { authClient, useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
+import {
+  getWeeklyReportSettings,
+  setWeeklyReportEnabled,
+} from "@/serverFunctions/reports";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
@@ -89,6 +94,10 @@ function SettingsPage() {
         </section>
 
         {isHosted ? (
+          <WeeklyReportsSection />
+        ) : null}
+
+        {isHosted ? (
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-base-content/50">
               Analytics
@@ -115,5 +124,60 @@ function SettingsPage() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+function WeeklyReportsSection() {
+  const queryClient = useQueryClient();
+  const settingsQuery = useQuery({
+    queryKey: ["weeklyReportSettings"],
+    queryFn: () => getWeeklyReportSettings(),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (enabled: boolean) =>
+      setWeeklyReportEnabled({ data: { enabled } }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["weeklyReportSettings"],
+      });
+      toast.success("Weekly report preference saved");
+    },
+    onError: () => {
+      toast.error("Could not update weekly report settings");
+    },
+  });
+
+  const enabled = settingsQuery.data?.enabled ?? true;
+  const lastSentAt = settingsQuery.data?.lastSentAt;
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-medium text-base-content/50">Reports</h2>
+      <div className="flex items-start justify-between gap-6">
+        <div>
+          <p className="text-sm">Weekly SEO email</p>
+          <p className="mt-1 text-sm text-base-content/60">
+            Rank summary PDF every Monday for workspaces with active rank
+            tracking.
+          </p>
+          {lastSentAt ? (
+            <p className="mt-1 text-xs text-base-content/50">
+              Last sent {new Date(lastSentAt).toLocaleString()}
+            </p>
+          ) : null}
+        </div>
+        <input
+          type="checkbox"
+          className="toggle toggle-primary"
+          checked={enabled}
+          disabled={settingsQuery.isPending || updateMutation.isPending}
+          onChange={(event) => {
+            updateMutation.mutate(event.currentTarget.checked);
+          }}
+          aria-label="Enable weekly SEO email reports"
+        />
+      </div>
+    </section>
   );
 }

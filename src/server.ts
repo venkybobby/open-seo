@@ -15,6 +15,11 @@ import { requestWithPublicOrigin } from "@/server/mcp/public-origin";
 import { MCP_ROUTE } from "@/server/mcp/context";
 import { handleSelfHostedOpenSeoMcpRequest } from "@/server/mcp/transport";
 import { computeNextCheckAt } from "@/shared/rank-tracking";
+import { enqueueWeeklyReports } from "@/server/scheduled/weeklyReports";
+import { TenantRepository } from "@/server/features/tenants/repositories/TenantRepository";
+import { tenantHasActivePlatformPlan } from "@/server/billing/tenant-subscription";
+
+const WEEKLY_REPORT_CRON = "0 14 * * 1";
 
 const appFetch = createStartHandler(defaultStreamHandler);
 const handleAppFetch = (request: Request): Response | Promise<Response> =>
@@ -50,14 +55,20 @@ function fetch(
 // Export Workflow classes as named exports
 export { SiteAuditWorkflow } from "./server/workflows/SiteAuditWorkflow";
 export { RankCheckWorkflow } from "./server/workflows/RankCheckWorkflow";
+export { WeeklyReportWorkflow } from "./server/workflows/WeeklyReportWorkflow";
 
 export default {
   fetch,
   async scheduled(
-    _controller: ScheduledController,
+    controller: ScheduledController,
     env: Env,
     _ctx: ExecutionContext,
   ) {
+    if (controller.cron === WEEKLY_REPORT_CRON) {
+      await enqueueWeeklyReports(env);
+      return;
+    }
+
     const nowIso = new Date().toISOString();
     const dueConfigs =
       await RankTrackingRepository.getDueConfigsWithOrganization(nowIso);
@@ -119,6 +130,17 @@ export default {
           );
         }
 
+        const tenant = await TenantRepository.getTenantBrandingForOrganization(
+          config.organizationId,
+        );
+
+        if (!(await tenantHasActivePlatformPlan(tenant.tenantId))) {
+          console.log(
+            `[cron] Skipping config ${config.id} — tenant platform subscription inactive`,
+          );
+          continue;
+        }
+
         const result = await beginRankCheckRun({
           workflow: env.RANK_CHECK_WORKFLOW,
           config,
@@ -128,6 +150,7 @@ export default {
             userEmail: "system@openseo.so",
             organizationId: config.organizationId,
             projectId: config.projectId,
+            tenant,
           },
           keywordsTotal: kwCount,
           trigger: "scheduled",

@@ -3,6 +3,8 @@ import type {
   DeleteProjectInput,
 } from "@/types/schemas/projects";
 import { ProjectRepository } from "@/server/features/projects/repositories/ProjectRepository";
+import { assertTenantProjectLimit } from "@/server/billing/tenant-subscription";
+import type { TenantBranding } from "@/lib/branding";
 import { AppError } from "@/server/lib/errors";
 
 function mapProject(project: {
@@ -44,10 +46,17 @@ export async function deleteProject(
   return { success: true };
 }
 
-export async function getOrCreateDefaultProject(organizationId: string) {
+export async function getOrCreateDefaultProject(
+  organizationId: string,
+  tenant?: TenantBranding,
+) {
   const existing = await ProjectRepository.listProjects(organizationId);
   if (existing.length > 0) {
     return mapProject(existing[0]);
+  }
+
+  if (tenant) {
+    await assertTenantProjectLimit(tenant.tenantId, tenant.plan);
   }
 
   const id = await ProjectRepository.createProject(

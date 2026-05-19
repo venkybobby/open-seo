@@ -24,6 +24,7 @@ import appCss from "@/client/styles/app.css?url";
 import { useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { Toaster } from "sonner";
+import { TenantBrandingProvider } from "@/client/components/TenantBrandingProvider";
 import { queryClient } from "@/client/tanstack-db";
 import { getActiveOrganizationId } from "@/lib/auth-session";
 
@@ -126,7 +127,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ClientOnly>
           <QueryClientProvider client={queryClient}>
-            <>
+            <TenantBrandingProvider>
               <PostHogBootstrap />
               {children}
               <ExportToSheetsModal />
@@ -144,7 +145,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   ]}
                 />
               ) : null}
-            </>
+            </TenantBrandingProvider>
           </QueryClientProvider>
         </ClientOnly>
         <Scripts />

@@ -2,7 +2,7 @@ import {
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
   AUTUMN_SEO_DATA_CREDITS_PER_USD,
   AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
-  SEO_DATA_COST_MARKUP,
+  getMarkupMultiplierForTenantPlan,
   roundUsdForBilling,
 } from "@/shared/billing";
 import { autumn } from "@/server/billing/autumn";
@@ -350,9 +350,8 @@ async function trackDataforseoCost(args: {
   monthlyRemaining: number;
   creditFeature?: CreditFeature;
 }) {
-  const totalCostUsd = roundUsdForBilling(
-    args.billing.costUsd * SEO_DATA_COST_MARKUP,
-  );
+  const markup = getMarkupMultiplierForTenantPlan(args.customer.tenant.plan);
+  const totalCostUsd = roundUsdForBilling(args.billing.costUsd * markup);
   const totalCostCredits = Math.ceil(
     totalCostUsd * AUTUMN_SEO_DATA_CREDITS_PER_USD,
   );

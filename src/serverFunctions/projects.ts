@@ -6,7 +6,10 @@ import { z } from "zod";
 export const getOrCreateDefaultProject = createServerFn({ method: "POST" })
   .middleware(requireAuthenticatedContext)
   .handler(async ({ context }) =>
-    ProjectService.getOrCreateDefaultProject(context.organizationId),
+    ProjectService.getOrCreateDefaultProject(
+      context.organizationId,
+      context.tenant,
+    ),
   );
 
 export const getProjectAccess = createServerFn({ method: "POST" })

@@ -10,11 +10,13 @@ import {
   Settings,
   User,
 } from "lucide-react";
+import { useTenantBranding } from "@/client/components/TenantBrandingProvider";
 import {
   AppContent,
   MissingSeoSetupModal,
   SeoApiStatusBanners,
 } from "@/client/layout/AppShellParts";
+import { defaultTenantBranding } from "@/lib/branding";
 import { getProjectNavGroups } from "@/client/navigation/items";
 import { signOutAndRedirect, useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
@@ -142,6 +144,22 @@ export function AuthenticatedAppLayout({
   );
 }
 
+function AppBrandMark({ className }: { className?: string }) {
+  const branding = useTenantBranding() ?? defaultTenantBranding;
+
+  if (branding.logoUrl) {
+    return (
+      <img
+        src={branding.logoUrl}
+        alt={branding.agencyName}
+        className={`h-7 max-w-[10rem] object-contain ${className ?? ""}`}
+      />
+    );
+  }
+
+  return <span className={className}>{branding.agencyName}</span>;
+}
+
 function TopNav({
   drawerOpen,
   projectId,
@@ -171,13 +189,13 @@ function TopNav({
           </button>
         ) : null}
         <Link to="/" className="ml-1 font-semibold text-base-content">
-          OpenSEO
+          <AppBrandMark />
         </Link>
       </div>
 
       <div className="hidden items-center gap-1 md:flex">
         <Link to="/" className="px-2 text-lg font-semibold text-base-content">
-          OpenSEO
+          <AppBrandMark />
         </Link>
         {projectId
           ? navGroups.map((entry) => {

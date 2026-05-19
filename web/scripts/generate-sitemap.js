@@ -15,6 +15,7 @@ const SITE_URL = (process.env.SITE_URL ?? DEFAULT_SITE_URL).replace(/\/+$/, "");
 
 const STATIC_PATHS = [
   "/",
+  "/for-agencies",
   "/pricing",
   "/privacy",
   "/terms-and-conditions",
