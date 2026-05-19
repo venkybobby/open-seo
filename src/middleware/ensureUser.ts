@@ -8,8 +8,10 @@ import type {
   EnsuredProject,
   EnsuredUserContext,
 } from "@/middleware/ensure-user/types";
+import { resolveTenantBranding } from "@/middleware/resolve-tenant";
 import { AppError } from "@/server/lib/errors";
 import { ProjectRepository } from "@/server/features/projects/repositories/ProjectRepository";
+import { TenantRepository } from "@/server/features/tenants/repositories/TenantRepository";
 import { env } from "cloudflare:workers";
 
 function extractProjectId(data: unknown) {
@@ -38,6 +40,12 @@ export const ensureUserMiddleware = createMiddleware({
     context = await resolveCloudflareAccessContext(headers);
   }
 
+  const tenant = await resolveTenantBranding(headers);
+  await TenantRepository.assertOrganizationBelongsToTenant(
+    context.organizationId,
+    tenant.tenantId,
+  );
+
   const projectId = extractProjectId(data);
 
   let project: EnsuredProject | undefined;
@@ -59,6 +67,7 @@ export const ensureUserMiddleware = createMiddleware({
   return next({
     context: {
       ...context,
+      tenant,
       project,
     },
   });

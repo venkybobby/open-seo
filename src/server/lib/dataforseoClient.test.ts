@@ -79,6 +79,15 @@ import {
 import { fetchBacklinksSummaryRaw } from "./dataforseoBacklinks";
 
 const billingCustomer = {
+  tenant: {
+    tenantId: "default",
+    slug: "default",
+    agencyName: "OpenSEO",
+    logoUrl: null,
+    primaryColor: null,
+    plan: "agency_pro" as const,
+    subscriptionStatus: "active",
+  },
   organizationId: "org_123",
   userId: "user_123",
   userEmail: "alice@example.com",

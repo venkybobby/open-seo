@@ -19,6 +19,24 @@ declare namespace Cloudflare {
 
     // DataForSEO API Basic auth value (base64 of login:password)
     DATAFORSEO_API_KEY: string;
+
+    /** e.g. agencyflowseo.com — enables {slug}.platform domain tenant routing */
+    TENANT_PLATFORM_DOMAIN?: string;
+    /** Fallback tenant slug when host does not match (default: `default`) */
+    DEFAULT_TENANT_SLUG?: string;
+
+    WEEKLY_REPORT_WORKFLOW: Workflow;
+
+    RESEND_API_KEY?: string;
+    RESEND_FROM_EMAIL?: string;
+    APP_PUBLIC_URL?: string;
+
+    STRIPE_SECRET_KEY?: string;
+    STRIPE_WEBHOOK_SECRET?: string;
+    STRIPE_PRICE_FREELANCER?: string;
+    STRIPE_PRICE_AGENCY_STARTER?: string;
+    STRIPE_PRICE_AGENCY_PRO?: string;
+    STRIPE_PRICE_ENTERPRISE?: string;
   }
 }
 

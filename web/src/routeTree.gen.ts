@@ -19,6 +19,7 @@ import { Route as GuidesSplatRouteImport } from './routes/guides/$'
 import { Route as ApiSubscribeRouteImport } from './routes/api/subscribe'
 import { Route as ApiEventRouteImport } from './routes/api/event'
 import { Route as MarketingPricingRouteImport } from './routes/_marketing/pricing'
+import { Route as MarketingForAgenciesRouteImport } from './routes/_marketing/for-agencies'
 import { Route as MarketingFeaturesMcpRouteImport } from './routes/_marketing/features/mcp'
 
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
@@ -70,6 +71,11 @@ const MarketingPricingRoute = MarketingPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => MarketingRoute,
 } as any)
+const MarketingForAgenciesRoute = MarketingForAgenciesRouteImport.update({
+  id: '/for-agencies',
+  path: '/for-agencies',
+  getParentRoute: () => MarketingRoute,
+} as any)
 const MarketingFeaturesMcpRoute = MarketingFeaturesMcpRouteImport.update({
   id: '/features/mcp',
   path: '/features/mcp',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/pricing': typeof MarketingPricingRoute
+  '/for-agencies': typeof MarketingForAgenciesRoute
   '/api/event': typeof ApiEventRoute
   '/api/subscribe': typeof ApiSubscribeRoute
   '/guides/$': typeof GuidesSplatRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/pricing': typeof MarketingPricingRoute
+  '/for-agencies': typeof MarketingForAgenciesRoute
   '/api/event': typeof ApiEventRoute
   '/api/subscribe': typeof ApiSubscribeRoute
   '/guides/$': typeof GuidesSplatRoute
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/_marketing/pricing': typeof MarketingPricingRoute
+  '/_marketing/for-agencies': typeof MarketingForAgenciesRoute
   '/api/event': typeof ApiEventRoute
   '/api/subscribe': typeof ApiSubscribeRoute
   '/guides/$': typeof GuidesSplatRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-and-conditions'
     | '/pricing'
+    | '/for-agencies'
     | '/api/event'
     | '/api/subscribe'
     | '/guides/$'
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-and-conditions'
     | '/pricing'
+    | '/for-agencies'
     | '/api/event'
     | '/api/subscribe'
     | '/guides/$'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms-and-conditions'
     | '/_marketing/pricing'
+    | '/_marketing/for-agencies'
     | '/api/event'
     | '/api/subscribe'
     | '/guides/$'
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketingPricingRouteImport
       parentRoute: typeof MarketingRoute
     }
+    '/_marketing/for-agencies': {
+      id: '/_marketing/for-agencies'
+      path: '/for-agencies'
+      fullPath: '/for-agencies'
+      preLoaderRoute: typeof MarketingForAgenciesRouteImport
+      parentRoute: typeof MarketingRoute
+    }
     '/_marketing/features/mcp': {
       id: '/_marketing/features/mcp'
       path: '/features/mcp'
@@ -249,12 +268,14 @@ declare module '@tanstack/react-router' {
 
 interface MarketingRouteChildren {
   MarketingPricingRoute: typeof MarketingPricingRoute
+  MarketingForAgenciesRoute: typeof MarketingForAgenciesRoute
   MarketingIndexRoute: typeof MarketingIndexRoute
   MarketingFeaturesMcpRoute: typeof MarketingFeaturesMcpRoute
 }
 
 const MarketingRouteChildren: MarketingRouteChildren = {
   MarketingPricingRoute: MarketingPricingRoute,
+  MarketingForAgenciesRoute: MarketingForAgenciesRoute,
   MarketingIndexRoute: MarketingIndexRoute,
   MarketingFeaturesMcpRoute: MarketingFeaturesMcpRoute,
 }

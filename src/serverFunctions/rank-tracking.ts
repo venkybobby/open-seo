@@ -7,7 +7,10 @@ import { AppError, asAppError } from "@/server/lib/errors";
 import { isHostedServerAuthMode } from "@/server/lib/runtime-env";
 import { customerHasPaidPlan } from "@/server/billing/subscription";
 import { captureServerEvent } from "@/server/lib/posthog";
-import { requireProjectContext } from "@/serverFunctions/middleware";
+import {
+  requireProjectContext,
+  requireTenantPlatformPlan,
+} from "@/serverFunctions/middleware";
 import {
   getConfigsSchema,
   createConfigSchema,
@@ -36,7 +39,7 @@ export const getRankTrackingConfigSummaries = createServerFn({ method: "POST" })
   });
 
 export const createRankTrackingConfig = createServerFn({ method: "POST" })
-  .middleware(requireProjectContext)
+  .middleware([...requireProjectContext, ...requireTenantPlatformPlan])
   .inputValidator((data: unknown) => createConfigSchema.parse(data))
   .handler(async ({ data, context }) => {
     const result = await RankTrackingService.createConfig({
@@ -83,7 +86,7 @@ export const updateRankTrackingConfig = createServerFn({ method: "POST" })
   });
 
 export const triggerRankCheck = createServerFn({ method: "POST" })
-  .middleware(requireProjectContext)
+  .middleware([...requireProjectContext, ...requireTenantPlatformPlan])
   .inputValidator((data: unknown) => triggerCheckSchema.parse(data))
   .handler(async ({ data, context }) => {
     const isHosted = await isHostedServerAuthMode();

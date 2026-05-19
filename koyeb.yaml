@@ -1,0 +1,36 @@
+# Koyeb service definition for Docker self-host OpenSEO / AgencyFlow.
+# Set secrets in Koyeb before deploy: DATAFORSEO_API_KEY (required).
+# Docs: docs/koyeb-deploy.md
+name: open-seo-docker
+services:
+  - name: open-seo
+    docker:
+      dockerfile: Dockerfile.selfhost
+    instance_type: small
+    regions:
+      - was
+    ports:
+      - port: 3001
+        protocol: http
+    volumes:
+      - mount_path: /app/.wrangler
+        size_gb: 2
+    env:
+      - key: CLOUDFLARE_INCLUDE_PROCESS_ENV
+        value: "true"
+      - key: AUTH_MODE
+        value: local_noauth
+      - key: PORT
+        value: "3001"
+      - key: VITE_SHOW_DEVTOOLS
+        value: "false"
+    secrets:
+      - key: DATAFORSEO_API_KEY
+        secret: dataforseo-api-key
+    healthchecks:
+      - port: 3001
+        http_path: /
+        interval: 30
+        timeout: 10
+        unhealthy_threshold: 3
+        healthy_threshold: 2
