@@ -1,6 +1,8 @@
+import type { BillingCustomerContext } from "@/server/billing/subscription";
 import { ProjectService } from "@/server/features/projects/services/ProjectService";
+import { TenantRepository } from "@/server/features/tenants/repositories/TenantRepository";
 import {
-  buildBillingCustomer,
+  buildMcpBillingCustomerInput,
   requireMcpToolAuthContext,
   type ToolExtra,
 } from "@/server/mcp/context";
@@ -18,10 +20,19 @@ async function requireProjectAccess(_extra: ToolExtra, projectId: string) {
     projectId,
   );
 
+  const tenant = await TenantRepository.getTenantBrandingForOrganization(
+    auth.organizationId,
+  );
+
+  const billing: BillingCustomerContext = {
+    ...buildMcpBillingCustomerInput(auth, projectId),
+    tenant,
+  };
+
   return {
     auth,
     baseUrl,
-    billing: buildBillingCustomer(auth, projectId),
+    billing,
   };
 }
 

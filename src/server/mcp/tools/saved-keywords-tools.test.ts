@@ -1,10 +1,12 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { ToolExtra } from "@/server/mcp/context";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { defaultTenantBranding } from "@/lib/branding";
 import { MCP_AUTH_CONTEXT_PROP } from "@/server/mcp/context";
 
 const mocks = vi.hoisted(() => ({
   getProjectForOrganization: vi.fn(),
+  getTenantBrandingForOrganization: vi.fn(),
   getSavedKeywords: vi.fn(),
   saveKeywords: vi.fn(),
 }));
@@ -12,6 +14,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/server/features/projects/services/ProjectService", () => ({
   ProjectService: {
     getProjectForOrganization: mocks.getProjectForOrganization,
+  },
+}));
+
+vi.mock("@/server/features/tenants/repositories/TenantRepository", () => ({
+  TenantRepository: {
+    getTenantBrandingForOrganization: mocks.getTenantBrandingForOrganization,
   },
 }));
 
@@ -52,6 +60,10 @@ describe("saved keyword MCP tools", () => {
     vi.resetModules();
     mocks.getProjectForOrganization.mockReset();
     mocks.getProjectForOrganization.mockResolvedValue({ id: "project_1" });
+    mocks.getTenantBrandingForOrganization.mockReset();
+    mocks.getTenantBrandingForOrganization.mockResolvedValue(
+      defaultTenantBranding,
+    );
     mocks.getSavedKeywords.mockReset();
     mocks.saveKeywords.mockReset();
   });

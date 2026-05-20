@@ -2,7 +2,7 @@ import { getAuth, hasHostedAuthConfig } from "@/lib/auth";
 import { getActiveOrganizationId } from "@/lib/auth-session";
 import { getOrCreateDefaultHostedOrganization } from "@/server/auth/default-hosted-organization";
 import { AppError } from "@/server/lib/errors";
-import type { EnsuredUserContext } from "./types";
+import type { ResolvedAuthContext } from "./types";
 
 async function requireHostedSession(headers: Headers) {
   if (!hasHostedAuthConfig()) {
@@ -23,7 +23,7 @@ async function requireHostedSession(headers: Headers) {
 
 export async function resolveHostedContext(
   headers: Headers,
-): Promise<EnsuredUserContext> {
+): Promise<ResolvedAuthContext> {
   const session = await requireHostedSession(headers);
   const activeOrganizationId = getActiveOrganizationId(session);
 

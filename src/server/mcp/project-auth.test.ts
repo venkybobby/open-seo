@@ -1,15 +1,23 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { ToolExtra } from "@/server/mcp/context";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { defaultTenantBranding } from "@/lib/branding";
 import { MCP_AUTH_CONTEXT_PROP } from "@/server/mcp/context";
 
 const mocks = vi.hoisted(() => ({
   getProjectForOrganization: vi.fn(),
+  getTenantBrandingForOrganization: vi.fn(),
 }));
 
 vi.mock("@/server/features/projects/services/ProjectService", () => ({
   ProjectService: {
     getProjectForOrganization: mocks.getProjectForOrganization,
+  },
+}));
+
+vi.mock("@/server/features/tenants/repositories/TenantRepository", () => ({
+  TenantRepository: {
+    getTenantBrandingForOrganization: mocks.getTenantBrandingForOrganization,
   },
 }));
 
@@ -42,6 +50,10 @@ describe("withMcpProjectAuth", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.getProjectForOrganization.mockReset();
+    mocks.getTenantBrandingForOrganization.mockReset();
+    mocks.getTenantBrandingForOrganization.mockResolvedValue(
+      defaultTenantBranding,
+    );
   });
 
   it("checks project access for the authenticated organization", async () => {
@@ -84,6 +96,7 @@ describe("withMcpProjectAuth", () => {
           userEmail: "alice@example.com",
           organizationId: "org_123",
           projectId: "project_123",
+          tenant: defaultTenantBranding,
         },
       },
     );

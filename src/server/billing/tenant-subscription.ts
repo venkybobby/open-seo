@@ -1,8 +1,12 @@
 import { eq } from "drizzle-orm";
-import type Stripe from "stripe";
+import type { Stripe as StripeNamespace } from "stripe";
 import { db } from "@/db";
-import { tenants, type TenantPlan } from "@/db/tenant.schema";
-import { organizationTenants } from "@/db/tenant.schema";
+import {
+  organizationTenants,
+  tenantPlans,
+  tenants,
+  type TenantPlan,
+} from "@/db/tenant.schema";
 import {
   getStripeClient,
   getStripePriceIdForPlan,
@@ -192,7 +196,7 @@ async function updateTenantSubscriptionState(
 }
 
 function planFromSubscription(
-  subscription: Stripe.Subscription,
+  subscription: StripeNamespace.Subscription,
 ): TenantPlan | null {
   const priceId = subscription.items.data[0]?.price?.id;
   if (!priceId) return null;
@@ -200,13 +204,16 @@ function planFromSubscription(
 }
 
 export async function syncTenantFromStripeSubscription(
-  subscription: Stripe.Subscription,
+  subscription: StripeNamespace.Subscription,
 ) {
-  const tenantId =
-    subscription.metadata?.tenant_id ??
-    (typeof subscription.customer === "string"
+  const customer = subscription.customer;
+  const customerMetadataTenantId =
+    typeof customer === "string" || !customer || customer.deleted
       ? null
-      : subscription.customer?.metadata?.tenant_id);
+      : (customer.metadata?.tenant_id ?? null);
+
+  const tenantId =
+    subscription.metadata?.tenant_id ?? customerMetadataTenantId;
 
   if (!tenantId) {
     console.warn("[stripe] Subscription missing tenant_id metadata");
@@ -229,13 +236,22 @@ export async function syncTenantFromStripeSubscription(
   });
 }
 
+function isTenantPlan(value: string): value is TenantPlan {
+  return (tenantPlans as readonly string[]).includes(value);
+}
+
+function parsePlanMetadata(value: string | undefined): TenantPlan | undefined {
+  if (!value) return undefined;
+  return isTenantPlan(value) ? value : undefined;
+}
+
 export async function handleStripeCheckoutSessionCompleted(
-  session: Stripe.Checkout.Session,
+  session: StripeNamespace.Checkout.Session,
 ) {
   const tenantId = session.metadata?.tenant_id;
   if (!tenantId) return;
 
-  const plan = session.metadata?.plan as TenantPlan | undefined;
+  const plan = parsePlanMetadata(session.metadata?.plan);
   const subscriptionId =
     typeof session.subscription === "string"
       ? session.subscription

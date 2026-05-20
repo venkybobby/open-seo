@@ -6,7 +6,7 @@ import { resolveLocalNoAuthContext } from "@/middleware/ensure-user/delegated";
 import { resolveHostedContext } from "@/middleware/ensure-user/hosted";
 import type {
   EnsuredProject,
-  EnsuredUserContext,
+  ResolvedAuthContext,
 } from "@/middleware/ensure-user/types";
 import { resolveTenantBranding } from "@/middleware/resolve-tenant";
 import { AppError } from "@/server/lib/errors";
@@ -30,7 +30,7 @@ export const ensureUserMiddleware = createMiddleware({
 }).server(async ({ next, data }) => {
   const authMode = getAuthMode(env.AUTH_MODE);
   const headers = getRequest().headers;
-  let context: EnsuredUserContext;
+  let context: ResolvedAuthContext;
 
   if (authMode === "local_noauth") {
     context = await resolveLocalNoAuthContext();

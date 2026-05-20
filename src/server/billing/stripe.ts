@@ -1,5 +1,5 @@
-import Stripe from "stripe";
-import type { TenantPlan } from "@/db/tenant.schema";
+import StripeClient from "stripe";
+import { tenantPlans, type TenantPlan } from "@/db/tenant.schema";
 import { env } from "cloudflare:workers";
 
 export function isStripePlatformBillingEnabled() {
@@ -22,17 +22,17 @@ function getRequiredEnv(name: string) {
 }
 
 export function getStripeClient() {
-  return new Stripe(getRequiredEnv("STRIPE_SECRET_KEY"), {
-    httpClient: Stripe.createFetchHttpClient(),
+  return new StripeClient(getRequiredEnv("STRIPE_SECRET_KEY"), {
+    httpClient: StripeClient.createFetchHttpClient(),
   });
 }
 
-const PLAN_PRICE_ENV: Record<TenantPlan, string> = {
+const PLAN_PRICE_ENV = {
   freelancer: "STRIPE_PRICE_FREELANCER",
   agency_starter: "STRIPE_PRICE_AGENCY_STARTER",
   agency_pro: "STRIPE_PRICE_AGENCY_PRO",
   enterprise: "STRIPE_PRICE_ENTERPRISE",
-};
+} satisfies Record<TenantPlan, string>;
 
 export function getStripePriceIdForPlan(plan: TenantPlan) {
   const envName = PLAN_PRICE_ENV[plan];
@@ -46,7 +46,7 @@ export function getStripePriceIdForPlan(plan: TenantPlan) {
 export function resolveTenantPlanFromPriceId(
   priceId: string,
 ): TenantPlan | null {
-  for (const plan of Object.keys(PLAN_PRICE_ENV) as TenantPlan[]) {
+  for (const plan of tenantPlans) {
     const configured = getOptionalEnv(PLAN_PRICE_ENV[plan]);
     if (configured === priceId) {
       return plan;
