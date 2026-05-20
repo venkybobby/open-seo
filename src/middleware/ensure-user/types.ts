@@ -5,10 +5,18 @@ export type EnsuredProject = NonNullable<
   Awaited<ReturnType<typeof ProjectRepository.getProjectForOrganization>>
 >;
 
-export type EnsuredUserContext = {
+/**
+ * Pre-tenant context returned by auth mode resolvers. `ensureUserMiddleware`
+ * adds `tenant` (and optional `project`) afterwards to produce
+ * `EnsuredUserContext`.
+ */
+export type ResolvedAuthContext = {
   userId: string;
   userEmail: string;
   organizationId: string;
+};
+
+export type EnsuredUserContext = ResolvedAuthContext & {
   tenant: TenantBranding;
   project?: EnsuredProject;
 };

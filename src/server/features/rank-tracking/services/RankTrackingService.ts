@@ -199,12 +199,7 @@ async function triggerCheck(input: {
     workflow: env.RANK_CHECK_WORKFLOW,
     config,
     projectId: input.projectId,
-    billingCustomer: {
-      userId: input.billingCustomer.userId,
-      userEmail: input.billingCustomer.userEmail,
-      organizationId: input.billingCustomer.organizationId,
-      projectId: input.billingCustomer.projectId,
-    },
+    billingCustomer: input.billingCustomer,
     keywordsTotal: input.keywordIds ? input.keywordIds.length : keywords.length,
     keywordIds: input.keywordIds,
     trigger: "manual",

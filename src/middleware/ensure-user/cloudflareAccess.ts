@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { AppError } from "@/server/lib/errors";
 import { resolveDelegatedContext } from "./delegated";
-import type { EnsuredUserContext } from "./types";
+import type { ResolvedAuthContext } from "./types";
 
 const jwksByTeamDomain = new Map<
   string,
@@ -45,7 +45,7 @@ function getValidatedTeamDomain(teamDomain: string) {
 
 export async function resolveCloudflareAccessContext(
   headers: Headers,
-): Promise<EnsuredUserContext> {
+): Promise<ResolvedAuthContext> {
   const teamDomain = env.TEAM_DOMAIN
     ? getValidatedTeamDomain(env.TEAM_DOMAIN)
     : null;

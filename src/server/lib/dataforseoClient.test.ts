@@ -3,7 +3,7 @@ import {
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
   AUTUMN_SEO_DATA_CREDITS_PER_USD,
   AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
-  SEO_DATA_COST_MARKUP,
+  getMarkupMultiplierForTenantPlan,
 } from "@/shared/billing";
 
 interface TrackCallArg {
@@ -159,7 +159,9 @@ describe("meterDataforseoCall with split balances", () => {
 
   const RAW_COST = 0.05;
   const EXPECTED_CREDITS = Math.ceil(
-    RAW_COST * SEO_DATA_COST_MARKUP * AUTUMN_SEO_DATA_CREDITS_PER_USD,
+    RAW_COST *
+      getMarkupMultiplierForTenantPlan(billingCustomer.tenant.plan) *
+      AUTUMN_SEO_DATA_CREDITS_PER_USD,
   );
 
   it("deducts entirely from monthly when monthly has enough", async () => {

@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { TenantPlan } from "@/db/tenant.schema";
 import { tenantPlans } from "@/db/tenant.schema";
 import {
   countProjectsForTenant,
@@ -45,7 +44,7 @@ export const createPlatformCheckout = createServerFn({ method: "POST" })
 
     return createPlatformCheckoutSession({
       tenantId: context.tenant.tenantId,
-      plan: data.plan as TenantPlan,
+      plan: data.plan,
       email: context.userEmail,
       organizationId: context.organizationId,
     });

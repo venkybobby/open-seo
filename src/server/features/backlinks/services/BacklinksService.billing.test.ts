@@ -34,10 +34,13 @@ vi.mock("@/server/lib/dataforseoClient", () => ({
 import { normalizeBacklinksTarget } from "@/server/lib/dataforseoBacklinks";
 import { createBacklinksService } from "./BacklinksService";
 
+import { defaultTenantBranding } from "@/lib/branding";
+
 const billingCustomer = {
   organizationId: "org_123",
   userId: "user_123",
   userEmail: "team@example.com",
+  tenant: defaultTenantBranding,
 };
 
 const cache = new Map<string, string>();
@@ -230,6 +233,7 @@ it("keeps cache entries isolated per organization", async () => {
     organizationId: "org_456",
     userId: "user_456",
     userEmail: "other@example.com",
+    tenant: defaultTenantBranding,
   });
 
   expect(backlinksSummaryMock).toHaveBeenCalledTimes(2);

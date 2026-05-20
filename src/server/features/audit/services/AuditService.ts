@@ -58,12 +58,7 @@ async function startAudit(input: {
       id: auditId,
       params: {
         auditId,
-        billingCustomer: {
-          userId: input.billingCustomer.userId,
-          userEmail: input.billingCustomer.userEmail,
-          organizationId: input.billingCustomer.organizationId,
-          projectId: input.billingCustomer.projectId,
-        },
+        billingCustomer: input.billingCustomer,
         projectId: input.projectId,
         startUrl,
         config,

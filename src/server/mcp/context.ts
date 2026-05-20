@@ -94,10 +94,12 @@ export function getBaseUrl(extra: ToolExtra): string {
   return requireMcpToolAuthContext(extra).baseUrl;
 }
 
-export function buildBillingCustomer(
+export type McpBillingCustomerInput = Omit<BillingCustomerContext, "tenant">;
+
+export function buildMcpBillingCustomerInput(
   auth: McpAuth,
   projectId: string,
-): BillingCustomerContext {
+): McpBillingCustomerInput {
   return {
     userId: auth.userId,
     userEmail: auth.userEmail,

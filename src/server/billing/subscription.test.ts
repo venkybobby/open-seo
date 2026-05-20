@@ -19,6 +19,7 @@ vi.mock("@/server/lib/runtime-env", () => ({
   isHostedServerAuthMode: vi.fn(),
 }));
 
+import { defaultTenantBranding } from "@/lib/branding";
 import {
   customerHasPaidPlan,
   getOrCreateOrganizationCustomer,
@@ -53,6 +54,7 @@ describe("subscription billing", () => {
       organizationId: "org_123",
       userId: "user_123",
       userEmail: "alice@example.com",
+      tenant: defaultTenantBranding,
     });
 
     expect(getOrCreateMock).toHaveBeenCalledWith({

@@ -25,6 +25,7 @@ import { Route as AppSupportRouteImport } from './routes/_app/support'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppBillingRouteImport } from './routes/_app/billing'
 import { Route as AppAiRouteImport } from './routes/_app/ai'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiAutumnSplatRouteImport } from './routes/api/autumn/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppHelpDataforseoApiKeyRouteImport } from './routes/_app/help/dataforseo-api-key'
@@ -119,6 +120,11 @@ const AppAiRoute = AppAiRouteImport.update({
   id: '/ai',
   path: '/ai',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAutumnSplatRoute = ApiAutumnSplatRouteImport.update({
   id: '/api/autumn/$',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/help/dataforseo-api-key': typeof AppHelpDataforseoApiKeyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/autumn/$': typeof ApiAutumnSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/p/$projectId/audit': typeof ProjectPProjectIdAuditRouteWithChildren
   '/p/$projectId/backlinks': typeof ProjectPProjectIdBacklinksRoute
   '/p/$projectId/brand-lookup': typeof ProjectPProjectIdBrandLookupRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/help/dataforseo-api-key': typeof AppHelpDataforseoApiKeyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/autumn/$': typeof ApiAutumnSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/p/$projectId/backlinks': typeof ProjectPProjectIdBacklinksRoute
   '/p/$projectId/brand-lookup': typeof ProjectPProjectIdBrandLookupRoute
   '/p/$projectId/domain': typeof ProjectPProjectIdDomainRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/_app/help/dataforseo-api-key': typeof AppHelpDataforseoApiKeyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/autumn/$': typeof ApiAutumnSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_project/p/$projectId/audit': typeof ProjectPProjectIdAuditRouteWithChildren
   '/_project/p/$projectId/backlinks': typeof ProjectPProjectIdBacklinksRoute
   '/_project/p/$projectId/brand-lookup': typeof ProjectPProjectIdBrandLookupRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/help/dataforseo-api-key'
     | '/api/auth/$'
     | '/api/autumn/$'
+    | '/api/stripe/webhook'
     | '/p/$projectId/audit'
     | '/p/$projectId/backlinks'
     | '/p/$projectId/brand-lookup'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/help/dataforseo-api-key'
     | '/api/auth/$'
     | '/api/autumn/$'
+    | '/api/stripe/webhook'
     | '/p/$projectId/backlinks'
     | '/p/$projectId/brand-lookup'
     | '/p/$projectId/domain'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/_app/help/dataforseo-api-key'
     | '/api/auth/$'
     | '/api/autumn/$'
+    | '/api/stripe/webhook'
     | '/_project/p/$projectId/audit'
     | '/_project/p/$projectId/backlinks'
     | '/_project/p/$projectId/brand-lookup'
@@ -417,6 +429,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAutumnSplatRoute: typeof ApiAutumnSplatRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -532,6 +545,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ai'
       preLoaderRoute: typeof AppAiRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/autumn/$': {
       id: '/api/autumn/$'
@@ -791,6 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAutumnSplatRoute: ApiAutumnSplatRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

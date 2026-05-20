@@ -1,5 +1,6 @@
 import process from "node:process";
 import { createBacklinksService } from "@/server/features/backlinks/services/BacklinksService";
+import { defaultTenantBranding } from "@/lib/branding";
 import type { BillingCustomerContext } from "@/server/billing/subscription";
 import type {
   BacklinksLookupInput,
@@ -108,6 +109,7 @@ function buildBillingCustomer(
     organizationId: cliArgs.organizationId ?? "local",
     userId: cliArgs.userId ?? "local-user",
     userEmail: cliArgs.userEmail ?? "local@example.com",
+    tenant: defaultTenantBranding,
   };
 }
 

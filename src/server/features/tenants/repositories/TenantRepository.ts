@@ -6,7 +6,6 @@ import {
   tenantRowToBranding,
   type TenantBranding,
 } from "@/lib/branding";
-import { organizationTenants } from "@/db/tenant.schema";
 import { AppError } from "@/server/lib/errors";
 
 const DEFAULT_TENANT_SLUG = "default";

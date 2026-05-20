@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { delegatedUsers } from "@/db/schema";
 import { ensureDelegatedOrganizationForUser } from "@/server/auth/delegated-organization";
 import { eq } from "drizzle-orm";
-import type { EnsuredUserContext } from "./types";
+import type { ResolvedAuthContext } from "./types";
 
 const LOCAL_ADMIN_USER_ID = "local-admin";
 const LOCAL_ADMIN_EMAIL = "admin@localhost";
@@ -36,7 +36,7 @@ async function ensureUserRecord(userId: string, userEmail: string) {
 export async function resolveDelegatedContext(
   userId: string,
   userEmail: string,
-): Promise<EnsuredUserContext> {
+): Promise<ResolvedAuthContext> {
   const ensuredEmail = await ensureUserRecord(userId, userEmail);
   const organizationId = await ensureDelegatedOrganizationForUser(
     userId,
@@ -50,6 +50,6 @@ export async function resolveDelegatedContext(
   };
 }
 
-export async function resolveLocalNoAuthContext(): Promise<EnsuredUserContext> {
+export async function resolveLocalNoAuthContext(): Promise<ResolvedAuthContext> {
   return resolveDelegatedContext(LOCAL_ADMIN_USER_ID, LOCAL_ADMIN_EMAIL);
 }
