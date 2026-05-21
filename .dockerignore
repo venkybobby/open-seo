@@ -1,11 +1,30 @@
 .git
 .github
-.logs
-.wrangler
 node_modules
 dist
-coverage
-*.log
-Dockerfile
+dist-sourcemaps
+.wrangler
+.cache
+.logs
 .env
-.env.local
+.env.*
+!.env.example
+.dev.vars
+.DS_Store
+*.log
+coverage
+test-results
+playwright-report
+
+# Don't ship the marketing site inside the app image; it deploys separately.
+web/node_modules
+web/dist
+web/.wrangler
+
+# Editor / IDE
+.vscode
+.idea
+*.swp
+
+# Misc
+*.tsbuildinfo

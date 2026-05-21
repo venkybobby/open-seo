@@ -3,16 +3,36 @@ FROM node:22
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
+# Required so `cloudflare:workers` env() reads process.env when running under
+# `vite preview` (i.e. workerd inside a plain Node container, not on Cloudflare).
+ENV CLOUDFLARE_INCLUDE_PROCESS_ENV=true
+# Building with showDevtools disabled keeps the bundle lean for production.
+ENV VITE_SHOW_DEVTOOLS=false
 
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
 
+# Install deps first to maximize Docker layer cache hits.
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
+# Copy the rest of the sources and build at IMAGE-BUILD time, not runtime.
+# This means the container boots in seconds (just migrate + start) instead of
+# spending 5–10 minutes building on every redeploy. Without this, hosted PaaS
+# (Railway/Koyeb) healthchecks race the build and return 404 from the edge
+# proxy before the app ever binds to $PORT.
 COPY . .
+RUN pnpm run build
 
+# Vite preview (with @cloudflare/vite-plugin) honors $PORT; fall back to 3001
+# for local docker runs. Railway/Koyeb inject their own $PORT — do not pin it.
 EXPOSE 3001
 
-CMD ["sh", "-c", "pnpm run db:migrate:local && pnpm run build && pnpm exec vite preview --host 0.0.0.0 --port ${PORT:-3001}"]
+# Healthcheck hits the app via loopback. Long start-period gives D1 migrations
+# room to run on first boot when the persistent volume is empty.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3001)+'/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
+
+# Only migrate + start at runtime. The build is already in /app/dist.
+CMD ["sh", "-c", "pnpm run db:migrate:local && pnpm exec vite preview --host 0.0.0.0 --port ${PORT:-3001}"]
