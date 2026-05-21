@@ -75,8 +75,21 @@ Set under `Variables` (use Railway secret references for keys):
 | `CLOUDFLARE_INCLUDE_PROCESS_ENV` | `true` |
 | `AUTH_MODE` | `local_noauth` |
 | `DATAFORSEO_API_KEY` | base64 `login:password` |
-| `ALLOWED_HOST` | your Railway URL or custom domain |
+| `ALLOWED_HOST` | your public Railway / custom domain (see below) |
 | `VITE_SHOW_DEVTOOLS` | `false` |
+
+`ALLOWED_HOST` accepts:
+
+- **A single host** — `open-seo-production-59ac.up.railway.app`
+- **Multiple hosts, comma-separated** — `app.openseo.so,staging.openseo.so`
+- **`*`** — allow any Host header (only safe behind a trusted proxy that
+  rewrites/strips it)
+
+You do **not** need to add `healthcheck.railway.app` — `vite.config.ts`
+always whitelists it (along with `localhost` / `127.0.0.1`) so Railway's
+internal healthchecks pass regardless of what `ALLOWED_HOST` is set to.
+Forgetting this previously caused every deploy to flap as "service
+unavailable" while the app itself was healthy on `:$PORT`.
 
 ### Optional — hosted multi-tenant on Railway
 
