@@ -97,15 +97,23 @@ Only enable this if you've accepted that crons/workflows won't run. Weekly
 reports and the rank-check loop will need manual triggers (or an external
 scheduler hitting an admin endpoint).
 
+> **Important:** `AUTH_MODE` is read by both the **server at runtime** and the
+> **client bundle at image-build time**. Railway automatically forwards every
+> service Variable as a Docker build arg, and `Dockerfile.selfhost` declares
+> `ARG AUTH_MODE` (default `local_noauth`). After flipping `AUTH_MODE` you
+> must **Deploy Latest Commit** (a full rebuild) — not just a Restart — or
+> the client bundle will still think it's in `local_noauth` mode.
+
 | Variable | Notes |
 |----------|-------|
 | `AUTH_MODE` | `hosted` |
-| `BETTER_AUTH_SECRET` | 32+ char random |
-| `BETTER_AUTH_URL` | Railway URL (https) |
+| `BETTER_AUTH_SECRET` | 32+ char random (`node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`) |
+| `BETTER_AUTH_URL` | Railway URL (https) — no trailing slash |
 | `APP_PUBLIC_URL` | same |
-| `AUTUMN_SECRET_KEY` | Autumn usage billing |
+| `AUTUMN_SECRET_KEY` | Autumn usage billing (optional unless using DataForSEO credit metering) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | see [`stripe-setup.md`](stripe-setup.md) |
 | `STRIPE_PRICE_FREELANCER` / `_AGENCY_STARTER` / `_AGENCY_PRO` | Stripe price IDs |
+| `LOOPS_API_KEY` + `LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID` + `LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID` | optional, for auth emails |
 | `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | weekly report emails (manual trigger only) |
 | `TENANT_PLATFORM_DOMAIN` | your apex domain |
 | `LOOPS_API_KEY` + transactional IDs | optional, transactional auth emails |

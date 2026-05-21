@@ -9,6 +9,22 @@ ENV CLOUDFLARE_INCLUDE_PROCESS_ENV=true
 # Building with showDevtools disabled keeps the bundle lean for production.
 ENV VITE_SHOW_DEVTOOLS=false
 
+# Build args that the client bundle reads via `import.meta.env.*`. These MUST
+# be set at image-build time because Vite inlines them into the static JS.
+# Setting them only at runtime (Railway/Koyeb Variables) is too late — the
+# bundle is already frozen. Railway passes every service Variable as a build
+# arg automatically; for local `docker build` use `--build-arg AUTH_MODE=...`.
+#
+#   AUTH_MODE          local_noauth | hosted | cloudflare_access (default: local_noauth)
+#   POSTHOG_PUBLIC_KEY optional analytics
+#   POSTHOG_HOST       optional analytics host
+ARG AUTH_MODE=local_noauth
+ARG POSTHOG_PUBLIC_KEY
+ARG POSTHOG_HOST
+ENV AUTH_MODE=${AUTH_MODE}
+ENV POSTHOG_PUBLIC_KEY=${POSTHOG_PUBLIC_KEY}
+ENV POSTHOG_HOST=${POSTHOG_HOST}
+
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@10.30.1 --activate
