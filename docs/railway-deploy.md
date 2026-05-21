@@ -56,7 +56,13 @@ state until a request rehydrates them.
    Without this, **all data is lost on every redeploy**.
 
 4. **Generate a domain** (`Settings → Networking → Generate Domain`) or attach
-   a custom one. Railway sets `$PORT` automatically; the Dockerfile reads it.
+   a custom one. Railway sets `$PORT` automatically (usually `8080`) and the
+   Dockerfile binds `vite preview` to that port. The Dockerfile intentionally
+   does not declare `EXPOSE`, so Railway auto-detects the live listener and
+   forwards traffic to it. If your Railway service was provisioned before this
+   change, also clear / set **Settings → Networking → Target Port** to match
+   `$PORT` (`8080`) — a stale `Target Port: 3001` will cause Caddy to 404
+   instantly even when the app is healthy.
 
 ## 4. Environment variables
 
