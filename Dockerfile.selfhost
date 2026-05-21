@@ -25,9 +25,12 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
-# Vite preview (with @cloudflare/vite-plugin) honors $PORT; fall back to 3001
-# for local docker runs. Railway/Koyeb inject their own $PORT — do not pin it.
-EXPOSE 3001
+# Vite preview honors $PORT (Railway / Koyeb / Fly inject their own — typically
+# 8080). For local `docker run` it falls back to 3001 via the shell expansion
+# below. We deliberately DO NOT declare `EXPOSE 3001` because Railway uses
+# EXPOSE as the target port for its edge proxy, which would mis-route traffic
+# to 3001 when the app is actually listening on $PORT. Letting Railway/Koyeb
+# auto-detect from the live listener is correct on every PaaS we support.
 
 # Healthcheck hits the app via loopback. Long start-period gives D1 migrations
 # room to run on first boot when the persistent volume is empty.
