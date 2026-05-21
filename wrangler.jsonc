@@ -3,7 +3,13 @@
   "name": "open-seo",
   "main": "src/server.ts",
   "compatibility_date": "2025-09-02",
-  "compatibility_flags": ["nodejs_compat"],
+  // `nodejs_compat`            — required by Better Auth, drizzle, posthog-node, etc.
+  // `global_fetch_strictly_public` — silences the CIMD warning at startup and
+  //   enables OAuth 2.1 Client ID Metadata Documents for the MCP server. Forces
+  //   `fetch()` in Workers to behave as a strictly public client (no internal
+  //   Cloudflare service shortcuts). Safe here — every outbound call (DataForSEO,
+  //   Stripe, Resend, Loops, Autumn) is over the public internet.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "observability": {
     "enabled": true,
   },
