@@ -3,8 +3,10 @@ FROM node:22
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
-# Required so `cloudflare:workers` env() reads process.env when running under
-# `vite preview` (i.e. workerd inside a plain Node container, not on Cloudflare).
+# `CLOUDFLARE_INCLUDE_PROCESS_ENV=true` is only honored by `vite dev`, not
+# `vite preview`. At runtime workerd reads `dist/server/.dev.vars` for env, so
+# `scripts/start-self-hosted.sh` materializes the host env into that file
+# before booting. We still set the flag for completeness / dev-mode parity.
 ENV CLOUDFLARE_INCLUDE_PROCESS_ENV=true
 # Building with showDevtools disabled keeps the bundle lean for production.
 ENV VITE_SHOW_DEVTOOLS=false
@@ -48,10 +50,16 @@ RUN pnpm run build
 # to 3001 when the app is actually listening on $PORT. Letting Railway/Koyeb
 # auto-detect from the live listener is correct on every PaaS we support.
 
+# Make the start script executable inside the image (in case the source git
+# blob lost the +x bit on Windows checkouts).
+RUN chmod +x scripts/start-self-hosted.sh
+
 # Healthcheck hits the app via loopback. Long start-period gives D1 migrations
 # room to run on first boot when the persistent volume is empty.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3001)+'/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
 
-# Only migrate + start at runtime. The build is already in /app/dist.
-CMD ["sh", "-c", "pnpm run db:migrate:local && pnpm exec vite preview --host 0.0.0.0 --port ${PORT:-3001}"]
+# scripts/start-self-hosted.sh forwards Railway/Koyeb runtime env vars into
+# `dist/server/.dev.vars` (so workerd actually sees them), runs migrations,
+# then starts vite preview on $PORT.
+CMD ["./scripts/start-self-hosted.sh"]
