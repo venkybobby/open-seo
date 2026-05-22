@@ -23,9 +23,61 @@ const hostedBaseUrlSchema = z
     );
   }, "BETTER_AUTH_URL must use https or localhost");
 
+/**
+ * Read an env var from `cloudflare:workers` env first, then fall back to
+ * `process.env`. Belt-and-suspenders for self-hosted deployments where the
+ * `cloudflare:workers` env shim under `vite preview` doesn't always surface
+ * runtime-only variables set by the host platform (Railway/Koyeb/Fly).
+ */
+function readEnvVar(name: string): string | undefined {
+  const fromEnv = Reflect.get(env, name);
+  if (typeof fromEnv === "string" && fromEnv.trim() !== "") {
+    return fromEnv.trim();
+  }
+  const fromProcess =
+    typeof process !== "undefined" && process.env ? process.env[name] : undefined;
+  if (typeof fromProcess === "string" && fromProcess.trim() !== "") {
+    return fromProcess.trim();
+  }
+  return undefined;
+}
+
+let bootDiagnosticsLogged = false;
+function logBootDiagnosticsOnce() {
+  if (bootDiagnosticsLogged) return;
+  bootDiagnosticsLogged = true;
+  const interesting = [
+    "AUTH_MODE",
+    "BETTER_AUTH_URL",
+    "BETTER_AUTH_SECRET",
+    "APP_PUBLIC_URL",
+    "BYPASS_EMAIL_VERIFICATION",
+    "CLOUDFLARE_INCLUDE_PROCESS_ENV",
+    "ALLOWED_HOST",
+    "LOOPS_API_KEY",
+    "RESEND_API_KEY",
+  ];
+  const visible: Record<string, string> = {};
+  for (const name of interesting) {
+    const v = readEnvVar(name);
+    if (v) {
+      visible[name] =
+        name === "BETTER_AUTH_SECRET" ||
+        name === "LOOPS_API_KEY" ||
+        name === "RESEND_API_KEY"
+          ? `set(len=${v.length})`
+          : v;
+    } else {
+      visible[name] = "<unset>";
+    }
+  }
+  console.log("[auth] boot diagnostics:", visible);
+}
+
 function createAuth() {
+  logBootDiagnosticsOnce();
   const baseUrl = getHostedBaseUrl();
-  const bypassEmail = Reflect.get(env, "BYPASS_EMAIL_VERIFICATION") === "true";
+  const bypassEmail = isEmailVerificationBypassed();
   const baseAuthConfig = createBaseAuthConfig();
 
   const auth = betterAuth({
@@ -124,17 +176,20 @@ function getTrustedOrigins(baseUrl: string) {
 }
 
 export function getHostedBaseUrl() {
-  const baseUrl = env.BETTER_AUTH_URL?.trim();
+  const baseUrl =
+    readEnvVar("BETTER_AUTH_URL") ?? readEnvVar("APP_PUBLIC_URL");
 
   if (!baseUrl) {
-    throw new Error("BETTER_AUTH_URL is required in hosted mode");
+    throw new Error(
+      "BETTER_AUTH_URL (or APP_PUBLIC_URL) is required in hosted mode",
+    );
   }
 
   return hostedBaseUrlSchema.parse(baseUrl);
 }
 
 function getHostedSecret() {
-  const secret = env.BETTER_AUTH_SECRET?.trim();
+  const secret = readEnvVar("BETTER_AUTH_SECRET");
 
   if (!secret) {
     throw new Error("BETTER_AUTH_SECRET is required in hosted mode");
@@ -154,10 +209,22 @@ function hasHostedAuthEmailConfig() {
     "LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID",
   ];
 
-  return loopsVars.every((name) => {
-    const value: unknown = Reflect.get(env, name);
-    return typeof value === "string" && value.trim() !== "";
-  });
+  return loopsVars.every((name) => readEnvVar(name) !== undefined);
+}
+
+/**
+ * Email verification is bypassed when:
+ *   1. BYPASS_EMAIL_VERIFICATION is explicitly "true", OR
+ *   2. No email provider (Loops) is configured. This makes hosted-mode work
+ *      out of the box for self-hosters who haven't wired up an email service.
+ *      Set BYPASS_EMAIL_VERIFICATION=false to force verification (and pair it
+ *      with Loops vars).
+ */
+function isEmailVerificationBypassed(): boolean {
+  const explicit = readEnvVar("BYPASS_EMAIL_VERIFICATION");
+  if (explicit === "true") return true;
+  if (explicit === "false") return false;
+  return !hasHostedAuthEmailConfig();
 }
 
 /**
@@ -166,9 +233,10 @@ function hasHostedAuthEmailConfig() {
  * configuration". `null` means everything is configured.
  */
 export function getHostedAuthConfigError(): string | null {
-  let baseUrl: string;
+  logBootDiagnosticsOnce();
+
   try {
-    baseUrl = getHostedBaseUrl();
+    getHostedBaseUrl();
   } catch (error) {
     return error instanceof Error ? error.message : "BETTER_AUTH_URL invalid";
   }
@@ -181,24 +249,8 @@ export function getHostedAuthConfigError(): string | null {
       : "BETTER_AUTH_SECRET invalid";
   }
 
-  const bypassRaw = Reflect.get(env, "BYPASS_EMAIL_VERIFICATION");
-  const bypass = bypassRaw === "true";
-
-  if (!bypass && !hasHostedAuthEmailConfig()) {
-    const missing = [
-      "LOOPS_API_KEY",
-      "LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID",
-      "LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID",
-    ].filter(
-      (name) =>
-        typeof Reflect.get(env, name) !== "string" ||
-        (Reflect.get(env, name) as string).trim() === "",
-    );
-    return `Email verification is enabled but Loops is not fully configured. Either set BYPASS_EMAIL_VERIFICATION=true (current value: ${
-      bypassRaw === undefined ? "unset" : JSON.stringify(bypassRaw)
-    }) for testing, or set the missing Loops vars: ${missing.join(", ")}. baseURL=${baseUrl}`;
-  }
-
+  // Email verification: either explicitly bypassed, or (default) auto-bypassed
+  // when no Loops config exists. Either way, sign-up works.
   return null;
 }
 

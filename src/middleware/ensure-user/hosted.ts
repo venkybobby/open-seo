@@ -1,14 +1,16 @@
-import { getAuth, hasHostedAuthConfig } from "@/lib/auth";
+import { getAuth, getHostedAuthConfigError } from "@/lib/auth";
 import { getActiveOrganizationId } from "@/lib/auth-session";
 import { getOrCreateDefaultHostedOrganization } from "@/server/auth/default-hosted-organization";
 import { AppError } from "@/server/lib/errors";
 import type { ResolvedAuthContext } from "./types";
 
 async function requireHostedSession(headers: Headers) {
-  if (!hasHostedAuthConfig()) {
+  const configError = getHostedAuthConfigError();
+  if (configError) {
+    console.error("[auth] hosted auth config invalid:", configError);
     throw new AppError(
       "AUTH_CONFIG_MISSING",
-      "Missing Better Auth hosted configuration",
+      `Missing Better Auth hosted configuration: ${configError}`,
     );
   }
 
