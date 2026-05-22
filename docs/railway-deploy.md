@@ -142,8 +142,18 @@ listing every auth-relevant variable the worker can actually see.
 ## 5. First deploy
 
 - Build takes **5–10 min** (install + Vite build + tsc inside the container).
-- Container start runs `pnpm db:migrate:local` against the mounted `/app/.wrangler`
-  volume, then `vite preview --host 0.0.0.0 --port $PORT`.
+- Container start runs `scripts/start-self-hosted.sh`, which:
+  1. **Materializes Railway Variables into `dist/server/.dev.vars`** so workerd
+     can actually see them. The Cloudflare Vite plugin emits an empty
+     `.dev.vars` at build time and `vite preview` reads from that file at
+     runtime — `process.env` is *not* automatically forwarded into the worker
+     env. This step is the fix for "BETTER_AUTH_URL is required in hosted mode"
+     errors despite the variable being set in Railway.
+  2. Runs `pnpm db:migrate:local` against the mounted `/app/.wrangler` volume.
+  3. Execs `vite preview --host 0.0.0.0 --port $PORT`.
+- Watch the Deploy Logs for `[start] wrote N variables to dist/server/.dev.vars`
+  — if `N` is `0` your variables aren't reaching the container, check the
+  Railway service `Variables` tab and the source environment.
 - Health check at `/` should be green within ~30 s of start.
 
 ## 6. Post-deploy checklist
