@@ -160,17 +160,50 @@ function hasHostedAuthEmailConfig() {
   });
 }
 
-export function hasHostedAuthConfig() {
+/**
+ * Detailed reason why hosted auth config is incomplete, so the API route can
+ * surface a useful 500 body instead of "Missing Better Auth hosted
+ * configuration". `null` means everything is configured.
+ */
+export function getHostedAuthConfigError(): string | null {
+  let baseUrl: string;
   try {
-    getHostedBaseUrl();
-    getHostedSecret();
-    return (
-      Reflect.get(env, "BYPASS_EMAIL_VERIFICATION") === "true" ||
-      hasHostedAuthEmailConfig()
-    );
-  } catch {
-    return false;
+    baseUrl = getHostedBaseUrl();
+  } catch (error) {
+    return error instanceof Error ? error.message : "BETTER_AUTH_URL invalid";
   }
+
+  try {
+    getHostedSecret();
+  } catch (error) {
+    return error instanceof Error
+      ? error.message
+      : "BETTER_AUTH_SECRET invalid";
+  }
+
+  const bypassRaw = Reflect.get(env, "BYPASS_EMAIL_VERIFICATION");
+  const bypass = bypassRaw === "true";
+
+  if (!bypass && !hasHostedAuthEmailConfig()) {
+    const missing = [
+      "LOOPS_API_KEY",
+      "LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID",
+      "LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID",
+    ].filter(
+      (name) =>
+        typeof Reflect.get(env, name) !== "string" ||
+        (Reflect.get(env, name) as string).trim() === "",
+    );
+    return `Email verification is enabled but Loops is not fully configured. Either set BYPASS_EMAIL_VERIFICATION=true (current value: ${
+      bypassRaw === undefined ? "unset" : JSON.stringify(bypassRaw)
+    }) for testing, or set the missing Loops vars: ${missing.join(", ")}. baseURL=${baseUrl}`;
+  }
+
+  return null;
+}
+
+export function hasHostedAuthConfig() {
+  return getHostedAuthConfigError() === null;
 }
 
 export function getAuth() {

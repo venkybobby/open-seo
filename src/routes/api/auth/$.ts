@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
-import { getAuth, hasHostedAuthConfig } from "@/lib/auth";
+import { getAuth, getHostedAuthConfigError } from "@/lib/auth";
 import { isHostedAuthMode } from "@/lib/auth-mode";
 
 async function handleAuthRequest(request: Request) {
@@ -10,14 +10,26 @@ async function handleAuthRequest(request: Request) {
     });
   }
 
-  if (!hasHostedAuthConfig()) {
-    return new Response("Missing Better Auth hosted configuration", {
+  const configError = getHostedAuthConfigError();
+  if (configError) {
+    console.error("[auth] hosted auth config invalid:", configError);
+    return new Response(`Hosted auth config: ${configError}`, {
       status: 500,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
 
-  const auth = getAuth();
-  return auth.handler(request);
+  try {
+    const auth = getAuth();
+    return await auth.handler(request);
+  } catch (error) {
+    const message = error instanceof Error ? error.stack || error.message : String(error);
+    console.error("[auth] handler threw:", message);
+    return new Response(`Better Auth handler error: ${message}`, {
+      status: 500,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
 }
 
 export const Route = createFileRoute("/api/auth/$")({
