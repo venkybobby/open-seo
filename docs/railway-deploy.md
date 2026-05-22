@@ -104,20 +104,36 @@ scheduler hitting an admin endpoint).
 > must **Deploy Latest Commit** (a full rebuild) — not just a Restart — or
 > the client bundle will still think it's in `local_noauth` mode.
 
+#### Required (the only two)
+
 | Variable | Notes |
 |----------|-------|
 | `AUTH_MODE` | `hosted` |
 | `BETTER_AUTH_SECRET` | 32+ char random (`node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`) |
-| `BETTER_AUTH_URL` | Railway URL (https) — no trailing slash |
-| `APP_PUBLIC_URL` | same |
+
+`BETTER_AUTH_URL` is auto-derived from `APP_PUBLIC_URL` (or the request host)
+if not set. `BYPASS_EMAIL_VERIFICATION` defaults to `true` whenever no email
+provider is configured, so sign-up works out of the box without Loops/Resend.
+
+If the auth route returns a 500, the response body now tells you which gate
+failed (e.g. `BETTER_AUTH_SECRET must be at least 32 characters`). You can
+also check the Deploy Logs for a one-time `[auth] boot diagnostics:` line
+listing every auth-relevant variable the worker can actually see.
+
+#### Optional
+
+| Variable | Notes |
+|----------|-------|
+| `BETTER_AUTH_URL` | Override auto-derivation. Use the Railway URL (https), no trailing slash |
+| `APP_PUBLIC_URL` | Same as `BETTER_AUTH_URL` — used by other features (Stripe, weekly emails) |
+| `BYPASS_EMAIL_VERIFICATION` | `true` to force-skip verification, `false` to require it (and you must configure Loops too) |
 | `AUTUMN_SECRET_KEY` | Autumn usage billing (optional unless using DataForSEO credit metering) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | see [`stripe-setup.md`](stripe-setup.md) |
 | `STRIPE_PRICE_FREELANCER` / `_AGENCY_STARTER` / `_AGENCY_PRO` | Stripe price IDs |
-| `LOOPS_API_KEY` + `LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID` + `LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID` | optional, for auth emails |
+| `LOOPS_API_KEY` + `LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID` + `LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID` | transactional auth emails |
 | `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | weekly report emails (manual trigger only) |
 | `TENANT_PLATFORM_DOMAIN` | your apex domain |
-| `LOOPS_API_KEY` + transactional IDs | optional, transactional auth emails |
-| `POSTHOG_PUBLIC_KEY` | optional product analytics |
+| `POSTHOG_PUBLIC_KEY` | product analytics |
 
 ### Stripe webhook URL (hosted mode)
 
