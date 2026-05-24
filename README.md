@@ -52,17 +52,7 @@ Top priorities:
 - MCP for Claude
 - Making the best agentic workflows for SEO
 
-If something important is missing, please join the [Discord](https://discord.gg/c9uGs3cFXr) or email me at ben@openseo.so and request it.
 
-## Community
-
-Email me: ben@openseo.so
-Join Discord to chat: [Discord](https://discord.gg/c9uGs3cFXr)
-
-Follow along for updates:
-
-- Sign up for the mailing list on our website: [openseo.so](https://openseo.so)
-- Follow on X: https://x.com/bensenescu
 
 ## Pricing / Costs
 
